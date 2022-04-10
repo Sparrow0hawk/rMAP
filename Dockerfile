@@ -1,21 +1,17 @@
-FROM continuumio/miniconda3:4.6.14
+FROM ghcr.io/sparrow0hawk/miniconda3-user-docker:main
 
-RUN useradd --no-log-init -r -m -g staff main 
+USER root
 
-COPY --chown=main:staff . /home/main/rMAP
+RUN apt update && apt install -y trimmomatic parallel bwa
 
-RUN chown -R main:staff /opt/conda
+USER condauser
 
-USER main
+# the parent docker file have a condauser
+COPY --chown=condauser:staff . /home/condauser/rMAP
 
-WORKDIR /home/main/rMAP
-
-RUN conda install -c conda-forge mamba
+WORKDIR /home/condauser/rMAP
 
 RUN mamba env create -n rMAP-1.0 --file rMAP-1.0-Linux-installer.yml
-
-# Make RUN commands use the new environment:
-SHELL ["conda", "run", "--no-capture-output", "-n", "rMAP-1.0", "/bin/bash", "-c"]
 
 # The code to run when container is started:
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "rMAP-1.0","bin/rMAP"]
